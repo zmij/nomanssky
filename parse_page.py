@@ -13,7 +13,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)-8s - %(levelname)-7s - %(message)s",
 )
 
-import nms
+import nomanssky
 
 
 def parse_args():
@@ -31,7 +31,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def dump_item(item: nms.Item) -> None:
+def dump_item(item: nomanssky.Item) -> None:
     print(item.name)
     for k, v in item.__dict__.items():
         if k.startswith("_"):  # or k.endswith("_"):
@@ -44,12 +44,12 @@ def dump_item(item: nms.Item) -> None:
 async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         item, _ = await wiki.parse_page(args.page)
         if item is None:
             print(f"No item {args.page} found")
             return
-        print(json.dumps(item, cls=nms.JSONEncoder))
+        print(json.dumps(item, cls=nomanssky.JSONEncoder))
         wiki.store_to_db(item)
 
 

@@ -8,8 +8,8 @@ import datetime
 from typing import Any, Coroutine, Set, Dict, List, Callable, Iterable, Tuple
 from math import lcm
 
-import nms
-from nms.ansicolour import highlight_8bit as hl
+import nomanssky
+from nomanssky.ansicolour import highlight_8bit as hl
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -61,7 +61,9 @@ def parse_args():
 
 
 class _FormulaNode:
-    def __init__(self, formula: nms.Formula, dependencies: List[Any] = []) -> None:
+    def __init__(
+        self, formula: nomanssky.Formula, dependencies: List[Any] = []
+    ) -> None:
         self.formula = formula
         self.dependencies: List[_FormulaNode] = dependencies
 
@@ -74,14 +76,14 @@ class BOM:
     Has a total value
     """
 
-    ingredients: List[nms.Ingredient]
-    components: Dict[str, nms.Item]
+    ingredients: List[nomanssky.Ingredient]
+    components: Dict[str, nomanssky.Item]
 
     def __init__(
         self,
-        result: nms.Item,
-        ingredients: List[nms.Ingredient],
-        components: Dict[str, nms.Item],
+        result: nomanssky.Item,
+        ingredients: List[nomanssky.Ingredient],
+        components: Dict[str, nomanssky.Item],
         result_qty: int,
         formulas: _FormulaNode,
         avoid: bool,
@@ -139,7 +141,7 @@ class BOM:
                     elif self.max_rarity < other.max_rarity:
                         return True
                     return False
-                elif self.process_type == nms.FormulaType.CRAFT:
+                elif self.process_type == nomanssky.FormulaType.CRAFT:
                     return self._prefer_craft
                 return not self._prefer_craft
             elif self._avoid:
@@ -160,15 +162,15 @@ class BOM:
         return self.result.id
 
     @property
-    def process_type(self) -> nms.FormulaType:
+    def process_type(self) -> nomanssky.FormulaType:
         return self.formula_tree.formula.type
 
     @classmethod
     async def make_bom(
         cls,
-        wiki: nms.Wiki,
-        result: nms.Item,
-        formula: nms.Formula,
+        wiki: nomanssky.Wiki,
+        result: nomanssky.Item,
+        formula: nomanssky.Formula,
         global_boms: Dict[str, Any],
         avoid: Set[str],
         prefer_craft: bool,
@@ -196,8 +198,8 @@ class BOM:
     @classmethod
     def combine_boms(
         cls,
-        result: nms.Item,
-        formula: nms.Formula,
+        result: nomanssky.Item,
+        formula: nomanssky.Formula,
         boms: List["BOM"],
         global_boms: Dict[str, Any],
         avoid: Set[str],
@@ -268,7 +270,7 @@ class BOM:
         for key in new_components.keys():
             new_counts[key] = sum([b[key] for b in best_boms.values()])
 
-        new_ingredients = [nms.Ingredient(k, v) for k, v in new_counts.items()]
+        new_ingredients = [nomanssky.Ingredient(k, v) for k, v in new_counts.items()]
         avoid = new_components.keys() & avoid and True or False
         new_bom = BOM(
             result,
@@ -289,14 +291,14 @@ class BOM:
         return new_bom
 
 
-class BOMCounter(nms.NodeVisitor[BOM], nms.Loggable):
+class BOMCounter(nomanssky.NodeVisitor[BOM], nomanssky.Loggable):
     def __init__(self, boms: Dict[str, BOM]) -> None:
         super().__init__()
         self.boms = boms
         self.process_count: Dict[str, int] = {}
 
     async def get_adjacent(
-        self, node: BOM, direction: nms.WalkDirection, distance: int
+        self, node: BOM, direction: nomanssky.WalkDirection, distance: int
     ) -> Set[BOM]:
         return {
             self.boms[dep.formula.result.name] for dep in node.formula_tree.dependencies
@@ -315,13 +317,13 @@ class BOMCounter(nms.NodeVisitor[BOM], nms.Loggable):
         self.process_count[target.name] += 1
 
 
-class BOMPrinter(nms.NodeVisitor[BOM], nms.Loggable):
+class BOMPrinter(nomanssky.NodeVisitor[BOM], nomanssky.Loggable):
     def __init__(
         self,
         boms: Dict[str, BOM],
         counts: Dict[str, int],
-        print_formula: Callable[[nms.Item, nms.Formula, str], None],
-        get_color: Callable[[nms.Formula], Any],
+        print_formula: Callable[[nomanssky.Item, nomanssky.Formula, str], None],
+        get_color: Callable[[nomanssky.Formula], Any],
         multiple: int = 1,
     ) -> None:
         super().__init__()
@@ -334,14 +336,14 @@ class BOMPrinter(nms.NodeVisitor[BOM], nms.Loggable):
         self.max_refine_time = 0
         self.refinery_allocations: List[Tuple[str, str]] = []
         self.steps = {
-            nms.FormulaType.REFINING: 0,
-            nms.FormulaType.CRAFT: 0,
-            nms.FormulaType.COOK: 0,
+            nomanssky.FormulaType.REFINING: 0,
+            nomanssky.FormulaType.CRAFT: 0,
+            nomanssky.FormulaType.COOK: 0,
         }
         self._multiple = multiple
 
     async def get_adjacent(
-        self, node: BOM, direction: nms.WalkDirection, distance: int
+        self, node: BOM, direction: nomanssky.WalkDirection, distance: int
     ) -> Set[BOM]:
         return {
             self.boms[dep.formula.result.name] for dep in node.formula_tree.dependencies
@@ -352,7 +354,7 @@ class BOMPrinter(nms.NodeVisitor[BOM], nms.Loggable):
         count = self.counts[node.name] * node.output_qty * self._multiple
         color = self.get_color(formula)
         refine_time = ""
-        if formula.type == nms.FormulaType.REFINING:
+        if formula.type == nomanssky.FormulaType.REFINING:
             ref_size = len(formula.ingredients) < 3 and "medium" or "big"
             self.refineries[ref_size] += 1
             if formula.time is not None:
@@ -368,31 +370,31 @@ class BOMPrinter(nms.NodeVisitor[BOM], nms.Loggable):
         await self.print_formula(node.result, formula, "")
 
 
-class BOMBuilder(nms.FormulaTreePrinter):
+class BOMBuilder(nomanssky.FormulaTreePrinter):
     def __init__(
-        self, wiki: nms.Wiki, avoid: Iterable[str], prefer_craft: bool
+        self, wiki: nomanssky.Wiki, avoid: Iterable[str], prefer_craft: bool
     ) -> None:
         super().__init__(wiki)
-        self._bom_stack = nms.LIFO[List[BOM]]()
+        self._bom_stack = nomanssky.LIFO[List[BOM]]()
         self.best_boms: Dict[str, BOM] = {}
         self.avod = set(avoid)
         self.prefer_craft = prefer_craft
 
-    def filter(self, formula: nms.Formula, result: nms.Item) -> bool:
-        return result.cls != nms.Class.Resource
+    def filter(self, formula: nomanssky.Formula, result: nomanssky.Item) -> bool:
+        return result.cls != nomanssky.Class.Resource
 
-    async def examine_node(self, formula: nms.Formula, distance: int) -> None:
+    async def examine_node(self, formula: nomanssky.Formula, distance: int) -> None:
         self.log_debug(f"Examine {formula.result.name} distance {distance}")
 
         result = await self._wiki.get_item(formula.result.name)
-        if result.cls == nms.Class.Resource:
+        if result.cls == nomanssky.Class.Resource:
             return
         self._bom_stack.push(list())
         await self.print_formula(result, formula, " " * distance * 3)
 
-    async def finish_node(self, formula: nms.Formula, distance: int) -> None:
+    async def finish_node(self, formula: nomanssky.Formula, distance: int) -> None:
         result = await self._wiki.get_item(formula.result.name)
-        if result.cls == nms.Class.Resource:
+        if result.cls == nomanssky.Class.Resource:
             return
 
         self.log_debug(
@@ -427,7 +429,7 @@ class BOMBuilder(nms.FormulaTreePrinter):
 
         self.print_totals(bom, formula, distance)
 
-    def print_totals(self, bom: BOM, formula: nms.Formula, distance: int) -> None:
+    def print_totals(self, bom: BOM, formula: nomanssky.Formula, distance: int) -> None:
         color = self.get_color(formula)
         off = " " * distance * 3
         print(
@@ -460,7 +462,7 @@ class BOMBuilder(nms.FormulaTreePrinter):
             )
 
         vis = BOMCounter(self.best_boms)
-        await nms.walk_graph([bom], vis)
+        await nomanssky.walk_graph([bom], vis)
 
         hlprint("=" * 80, fg=color)
         hlprint("Process", fg=(color, "bright"))
@@ -471,7 +473,7 @@ class BOMBuilder(nms.FormulaTreePrinter):
             self.get_color,
             multiple=multiple,
         )
-        await nms.walk_graph([bom], vis)
+        await nomanssky.walk_graph([bom], vis)
         hlprint("=" * 80, fg=color)
         hlprint(f"Total steps {sum([v for v in vis.steps.values()])}", fg=color)
         for k, v in vis.steps.items():
@@ -502,23 +504,24 @@ class BOMBuilder(nms.FormulaTreePrinter):
             hlprint(f"Max refine time {max_refine_time}", fg=color)
             hlprint(f"Total refine time {total_refine_time}", fg=color)
         hlprint(
-            f"{vis.steps[nms.FormulaType.CRAFT] * multiple} taps for crafting", fg=color
+            f"{vis.steps[nomanssky.FormulaType.CRAFT] * multiple} taps for crafting",
+            fg=color,
         )
 
 
 async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         item = await wiki.get_item(args.item)
         if not item:
             print(f"Item not found")
             exit(1)
         vis = BOMBuilder(wiki, avoid=args.avoid, prefer_craft=args.prefer_craft)
-        await nms.walk_graph(
+        await nomanssky.walk_graph(
             item.source_formulas,
             vis,
-            walk_order=nms.WalkOrder.DFS,
+            walk_order=nomanssky.WalkOrder.DFS,
             log=wiki.log_debug,
         )
         await vis.print_bom(args.item, multiple=args.multiple)

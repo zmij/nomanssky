@@ -8,7 +8,7 @@ from enum import Enum
 
 from typing import Set, Callable
 
-import nms
+import nomanssky
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -29,9 +29,9 @@ class FormulaTypeFilter(Enum):
 
 
 FILTER_TO_FORMULA_TYPE = {
-    FormulaTypeFilter.REFINE: nms.FormulaType.REFINING,
-    FormulaTypeFilter.CRAFT: nms.FormulaType.CRAFT,
-    FormulaTypeFilter.COOK: nms.FormulaType.COOK,
+    FormulaTypeFilter.REFINE: nomanssky.FormulaType.REFINING,
+    FormulaTypeFilter.CRAFT: nomanssky.FormulaType.CRAFT,
+    FormulaTypeFilter.COOK: nomanssky.FormulaType.COOK,
 }
 
 # FormulaPredicate = Callable[[nms.Formula], bool]
@@ -71,41 +71,41 @@ def parse_args():
         "-t",
         "--type",
         default="any",
-        choices=nms.enum_values(FormulaTypeFilter),
+        choices=nomanssky.enum_values(FormulaTypeFilter),
         help="Filter formulas by type",
     )
 
     return parser.parse_args()
 
 
-def component_count_filter(cn: int) -> nms.FormulaPredicate:
+def component_count_filter(cn: int) -> nomanssky.FormulaPredicate:
     if cn == 0:
         return None
 
-    def filter(f: nms.Formula) -> bool:
+    def filter(f: nomanssky.Formula) -> bool:
         return len(f.ingredients) == cn
 
     return filter
 
 
-def formula_type_filter(t: FormulaTypeFilter) -> nms.FormulaPredicate:
+def formula_type_filter(t: FormulaTypeFilter) -> nomanssky.FormulaPredicate:
     if t == FormulaTypeFilter.ANY:
         return None
 
     to_find = FILTER_TO_FORMULA_TYPE[t]
 
-    def filter(f: nms.Formula) -> bool:
+    def filter(f: nomanssky.Formula) -> bool:
         return f.type == to_find
 
     return filter
 
 
-def combine_predicates(*args) -> nms.FormulaPredicate:
+def combine_predicates(*args) -> nomanssky.FormulaPredicate:
     not_empty = [f for f in args if f is not None]
     if not not_empty:
         return None
 
-    def filter(f: nms.Formula) -> bool:
+    def filter(f: nomanssky.Formula) -> bool:
         for p in not_empty:
             if not p(f):
                 return False
@@ -117,7 +117,7 @@ def combine_predicates(*args) -> nms.FormulaPredicate:
 async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         seen_formulas = set()
         item = await wiki.get_item(args.item)
         if not item.source_formulas:
@@ -126,7 +126,7 @@ async def main():
             count_filter = component_count_filter(args.component_count)
             type_tilter = formula_type_filter(FormulaTypeFilter(args.type))
 
-            printer = nms.FormulaPrinter(
+            printer = nomanssky.FormulaPrinter(
                 wiki,
                 find_cheapest=args.cheapest,
                 filter=combine_predicates(count_filter, type_tilter),

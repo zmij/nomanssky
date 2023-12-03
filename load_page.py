@@ -5,7 +5,7 @@ import asyncio
 import argparse
 import logging
 
-import nms
+import nomanssky
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,7 +27,7 @@ async def main():
 
     async with aiohttp.ClientSession() as session:
         url = f"{WIKI_BASE}{args.page}"
-        parser = nms.PageParser(session, url)
+        parser = nomanssky.PageParser(session, url)
         doc = await parser.content()
         print(doc.prettify())
 

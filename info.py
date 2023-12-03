@@ -7,7 +7,7 @@ import json
 
 from termcolor import colored
 
-import nms
+import nomanssky
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -35,12 +35,12 @@ def parse_args():
 async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         item = await wiki.get_item(args.item)
         if item is None:
             print(f"No item {args.item} found")
             return
-        print(json.dumps(item, cls=nms.JSONEncoder))
+        print(json.dumps(item, cls=nomanssky.JSONEncoder))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ import logging
 
 from typing import Set
 
-import nms
+import nomanssky
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -67,7 +67,7 @@ class VisitStat:
 
 async def visit_item(
     logger: logging.Logger,
-    wiki: nms.Wiki,
+    wiki: nomanssky.Wiki,
     item: str,
     visited: Set[str],
     to_visit: Set[str],
@@ -94,7 +94,7 @@ async def main():
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
     stats = VisitStat()
     try:
-        async with nms.Wiki() as wiki:
+        async with nomanssky.Wiki() as wiki:
             to_visit: set[str] = set([args.page])
             visited = set()
 
@@ -121,11 +121,11 @@ async def main():
     )
 
     if args.missing_classes:
-        print_missing_enum_values(nms.Class)
+        print_missing_enum_values(nomanssky.Class)
     if args.missing_types:
-        print_missing_enum_values(nms.Type)
+        print_missing_enum_values(nomanssky.Type)
     if args.missing_rarities:
-        print_missing_enum_values(nms.Rarity)
+        print_missing_enum_values(nomanssky.Rarity)
 
 
 if __name__ == "__main__":

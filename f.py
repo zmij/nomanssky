@@ -6,7 +6,7 @@ import logging
 
 from enum import Enum
 
-import nms
+import nomanssky
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -53,14 +53,14 @@ def parse_args():
         "-t",
         "--type",
         default="any",
-        choices=nms.enum_values(nms.FormulaTypeFilter),
+        choices=nomanssky.enum_values(nomanssky.FormulaTypeFilter),
         help="Filter formulas by type",
     )
     parser.add_argument(
         "-o",
         "--order",
         default="DFS",
-        choices=nms.enum_names(nms.WalkOrder),
+        choices=nomanssky.enum_names(nomanssky.WalkOrder),
         help="Graph walk order",
     )
     parser.add_argument(
@@ -90,7 +90,7 @@ def parse_args():
 async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         items = await wiki.get_items(args.items)
         source_formulas = [f for i in items if i is not None for f in i.source_formulas]
 
@@ -108,19 +108,21 @@ async def main():
             elif args.formula_number > 0:
                 source_formulas = source_formulas[0 : args.formula_number]
                 print(source_formulas)
-            count_filter = nms.component_count_filter(args.component_count)
-            type_tilter = nms.formula_type_filter(nms.FormulaTypeFilter(args.type))
+            count_filter = nomanssky.component_count_filter(args.component_count)
+            type_tilter = nomanssky.formula_type_filter(
+                nomanssky.FormulaTypeFilter(args.type)
+            )
 
-            vis = nms.FormulaTreePrinter(
+            vis = nomanssky.FormulaTreePrinter(
                 wiki,
-                filter=nms.combine_predicates(count_filter, type_tilter),
+                filter=nomanssky.combine_predicates(count_filter, type_tilter),
                 max_distance=args.depth,
                 use_type_emoji=args.use_emoji,
             )
-            await nms.walk_graph(
+            await nomanssky.walk_graph(
                 source_formulas,
                 vis,
-                walk_order=nms.enum_by_name(nms.WalkOrder, args.order),
+                walk_order=nomanssky.enum_by_name(nomanssky.WalkOrder, args.order),
             )
 
 

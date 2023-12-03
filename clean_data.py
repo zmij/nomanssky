@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-import nms
+import nomanssky
 
 logging.basicConfig(
     level=logging.INFO,
@@ -9,5 +9,5 @@ logging.basicConfig(
 )
 
 
-wiki = nms.Wiki()
+wiki = nomanssky.Wiki()
 wiki.drop_tables()

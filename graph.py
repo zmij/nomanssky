@@ -9,7 +9,7 @@ import pyvis.network
 
 from typing import Set
 
-import nms
+import nomanssky
 
 LOG_LEVELS = logging._nameToLevel
 
@@ -19,27 +19,27 @@ logging.basicConfig(
 )
 
 FORMULA_NODE_COLORS = {
-    nms.FormulaType.CRAFT: "#dcd23d",
-    nms.FormulaType.REFINING: "#623295",
+    nomanssky.FormulaType.CRAFT: "#dcd23d",
+    nomanssky.FormulaType.REFINING: "#623295",
 }
 FORMULA_EDGE_COLORS = {
-    nms.FormulaType.CRAFT: "#45431f",
-    nms.FormulaType.REFINING: "#392351",
+    nomanssky.FormulaType.CRAFT: "#45431f",
+    nomanssky.FormulaType.REFINING: "#392351",
 }
 NODE_CLASS_COLORS = {
-    nms.Class.Resource: "#38b5b0",
-    nms.Class.Tradeable: "#40b53a",
+    nomanssky.Class.Resource: "#38b5b0",
+    nomanssky.Class.Tradeable: "#40b53a",
 }
 DEFAULT_NODE_COLOR = "#e05048"
 EDGE_COLORS = {
-    nms.FormulaType.CRAFT: "#742c28",
-    nms.FormulaType.REFINING: "#245e21",
-    nms.FormulaType.COOK: "#194745",
-    nms.FormulaType.REPAIR: "#e0a748",
+    nomanssky.FormulaType.CRAFT: "#742c28",
+    nomanssky.FormulaType.REFINING: "#245e21",
+    nomanssky.FormulaType.COOK: "#194745",
+    nomanssky.FormulaType.REPAIR: "#e0a748",
 }
 
 
-def get_node_color(logger: logging.Logger, cls: nms.Class) -> str:
+def get_node_color(logger: logging.Logger, cls: nomanssky.Class) -> str:
     if cls in NODE_CLASS_COLORS:
         return NODE_CLASS_COLORS[cls]
     logger.info(f"No color defined for {cls.value}")
@@ -70,16 +70,16 @@ def parse_args():
     return parser.parse_args()
 
 
-class GraphBuilder(nms.Loggable):
+class GraphBuilder(nomanssky.Loggable):
     ...
 
 
 async def add_nodes(
     logger: logging.Logger,
-    wiki: nms.Wiki,
+    wiki: nomanssky.Wiki,
     net: pyvis.network.Network,
-    item: nms.Item,
-    seen_nodes: Set[nms.Item],
+    item: nomanssky.Item,
+    seen_nodes: Set[nomanssky.Item],
     depth: int,
 ) -> None:
     if item is None or item in seen_nodes:
@@ -116,9 +116,9 @@ async def add_nodes(
 
 async def build_formula_edges(
     logger: logging.Logger,
-    wiki: nms.Wiki,
+    wiki: nomanssky.Wiki,
     net: pyvis.network.Network,
-    seen_nodes: Set[nms.Item],
+    seen_nodes: Set[nomanssky.Item],
 ):
     seen_ids = set([x.id for x in seen_nodes])
     node_id = 0
@@ -156,9 +156,9 @@ async def build_formula_edges(
 
 async def build_edges(
     logger: logging.Logger,
-    wiki: nms.Wiki,
+    wiki: nomanssky.Wiki,
     net: pyvis.network.Network,
-    seen_nodes: Set[nms.Item],
+    seen_nodes: Set[nomanssky.Item],
 ) -> None:
     seen_ids = set([x.id for x in seen_nodes])
     node_id = 0
@@ -180,7 +180,7 @@ async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
     logger = logging.getLogger("Graph")
-    async with nms.Wiki() as wiki:
+    async with nomanssky.Wiki() as wiki:
         seen_nodes = set()
         item = await wiki.get_item(args.item)
         if not item.source_formulas:

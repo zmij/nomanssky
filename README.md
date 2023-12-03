@@ -24,6 +24,10 @@ different items in No Man's Sky.
 * `f.py` - formula graph traversal tool, for debug purposes.
 * `load_page.py` - mostly a debug script to async load a wiki page and dump it's contents.
 
+## Libary usage
+
+TODO
+
 ## Dependencies
 
 Standard python modules:
