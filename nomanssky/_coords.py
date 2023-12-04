@@ -1,4 +1,6 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
+from collections import namedtuple
+from typing import Any
 
 from ._loggable import Loggable
 
@@ -53,6 +55,124 @@ class _CodeState(IntEnum):
     Invalid = 3
 
 
+def _y_galactic_to_portal(value: int) -> int:
+    # TODO check range
+    if value < 0x7F:
+        return 0x81 + value
+    return value - 0x7F
+
+
+def _y_portal_to_galactic(value: int) -> int:
+    if value > 0x80:
+        return value - 0x81
+    return value + 0x7F
+
+
+def _xz_galactic_to_portal(value: int) -> int:
+    # TODO check range
+    if value < 0x7FF:
+        return 0x801 + value
+    return value - 0x7FF
+
+
+def _xz_portal_to_galactic(value: int) -> int:
+    if value > 0x800:
+        return value - 0x801
+    return value + 0x7FF
+
+
+_NOOP = lambda s: s
+
+
+_Conversions = namedtuple(
+    "_Conversions",
+    [
+        "name",
+        "y_to_galactic",  # Current coord space to galactic coord space
+        "y_to_portal",  # Current coord space to portal coord space
+        "y_from_galactic",  # Galactic coord space to local
+        "y_from_portal",  # Portal coord space to local
+        "xz_to_galactic",  # Current coord space to portal coord space
+        "xz_to_portal",  # Current coord space to galactic coord space
+        "xz_from_galactic",  # Galactic coord space to local
+        "xz_from_portal",  # Portal coord space to local
+    ],
+    defaults=[
+        None,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+        _NOOP,
+    ],
+)
+
+
+class CoordinateSpace(Enum):
+    Galactic = _Conversions(
+        name="Galactic",
+        y_to_portal=_y_galactic_to_portal,
+        y_from_portal=_y_portal_to_galactic,
+        xz_to_portal=_xz_galactic_to_portal,
+        xz_from_portal=_xz_portal_to_galactic,
+    )
+    Portal = _Conversions(
+        name="Portal",
+        y_to_galactic=_y_portal_to_galactic,
+        y_from_galactic=_y_galactic_to_portal,
+        xz_to_galactic=_xz_portal_to_galactic,
+        xz_from_galactic=_xz_galactic_to_portal,
+    )
+
+    def y_to_galactic(self, value: int) -> int:
+        return self.value.y_to_galactic(value)
+
+    def y_from_galactic(self, value: int) -> int:
+        return self.value.y_from_galactic(value)
+
+    def y_to_portal(self, value: int) -> int:
+        return self.value.y_to_portal(value)
+
+    def y_from_portal(self, value: int) -> int:
+        return self.value.y_from_portal(value)
+
+    def xz_to_galactic(self, value: int) -> int:
+        return self.value.xz_to_galactic(value)
+
+    def xz_from_galactic(self, value: int) -> int:
+        return self.value.xz_from_galactic(value)
+
+    def xz_to_portal(self, value: int) -> int:
+        return self.value.xz_to_portal(value)
+
+    def xz_from_portal(self, value: int) -> int:
+        return self.value.xz_from_portal(value)
+
+    def from_portal(self, field: Any, value: int) -> int:
+        if field.name == "y":
+            return self.y_from_portal(value)
+        if field.name == "x":
+            return self.xz_from_portal(value)
+        if field.name == "z":
+            return self.xz_from_portal(value)
+        return value
+
+    def from_galactic(self, field: Any, value: int) -> int:
+        if field.name == "y":
+            return self.y_from_galactic(value)
+        if field.name == "x":
+            return self.xz_from_galactic(value)
+        if field.name == "z":
+            return self.xz_from_galactic(value)
+        return value
+
+
+_DEFAULT_COORD_SPACE = CoordinateSpace.Portal
+
+
 class GalacticCoords(Loggable):
     """
     Galactic coords
@@ -65,6 +185,7 @@ class GalacticCoords(Loggable):
     y: int
     z: int
     x: int
+    c_space: CoordinateSpace
 
     def __init__(
         self,
@@ -76,23 +197,30 @@ class GalacticCoords(Loggable):
         x: int = None,
         z: int = None,
         sep: str = ":",
+        coordinate_space: CoordinateSpace = _DEFAULT_COORD_SPACE,
     ) -> None:
         self.planet = planet
         self.star_system = star_system
         self.y = y
         self.x = x
         self.z = z
+        self.c_space = coordinate_space
         if code:
             if sep != ":" or code.find(sep) >= 0:
                 # Try parse booster string
                 _, booster_state = GalacticCoords.from_booster_code(
-                    code, raise_if_invalid=False, coords=self, sep=sep
+                    code,
+                    coordinate_space=coordinate_space,
+                    raise_if_invalid=False,
+                    coords=self,
+                    sep=sep,
                 )
                 if booster_state == _CodeState.Complete:
                     return
                 # Retry parsing without booster id
                 GalacticCoords.from_booster_code(
                     code,
+                    coordinate_space=coordinate_space,
                     start_state=_BoosterCodeState.x,
                     coords=self,
                     sep=sep,
@@ -100,7 +228,9 @@ class GalacticCoords(Loggable):
                     complete_after=_BoosterCodeState.z,
                 )
             else:
-                GalacticCoords.from_portal_code(code, coords=self)
+                GalacticCoords.from_portal_code(
+                    code, coords=self, coordinate_space=coordinate_space
+                )
 
     def __str__(self) -> str:
         return self.galactic_coords
@@ -125,6 +255,10 @@ class GalacticCoords(Loggable):
         return super().__format__(__format_spec)
 
     @property
+    def coordinate_space(self) -> CoordinateSpace:
+        return self.c_space.value
+
+    @property
     def valid(self) -> bool:
         for a in ["x", "y", "z", "planet", "star_system"]:
             if not hasattr(self, a) or getattr(self, a) is None:
@@ -139,9 +273,9 @@ class GalacticCoords(Loggable):
                 for v, fmt in [
                     (self.planet, "1X"),
                     (self.star_system, "03X"),
-                    (self.y, "02x"),
-                    (self.z, "03x"),
-                    (self.x, "03x"),
+                    (self.c_space.y_to_portal(self.y or 0), "02X"),
+                    (self.c_space.xz_to_portal(self.z or 0), "03X"),
+                    (self.c_space.xz_to_portal(self.x or 0), "03X"),
                 ]
             ]
         )
@@ -156,9 +290,9 @@ class GalacticCoords(Loggable):
                 f"{{:{fmt}}}".format(v)
                 for v, fmt in [
                     (alpha, "s"),
-                    (_xz_to_booster(self.x), "04X"),
-                    (_y_to_booster(self.y), "04X"),
-                    (_xz_to_booster(self.z), "04X"),
+                    (self.c_space.xz_to_galactic(self.x or 0), "04X"),
+                    (self.c_space.y_to_galactic(self.y or 0), "04X"),
+                    (self.c_space.xz_to_galactic(self.z or 0), "04X"),
                     ((self.planet or 0) * 0x1000 + (self.star_system or 0), "04X"),
                 ]
                 if v is not None
@@ -171,9 +305,9 @@ class GalacticCoords(Loggable):
             [
                 "{:04X}".format(v)
                 for v in [
-                    _xz_to_booster(self.x),
-                    _y_to_booster(self.y),
-                    _xz_to_booster(self.z),
+                    self.c_space.xz_to_galactic(self.x or 0),
+                    self.c_space.y_to_galactic(self.y or 0),
+                    self.c_space.xz_to_galactic(self.z or 0),
                 ]
             ]
         )
@@ -182,6 +316,7 @@ class GalacticCoords(Loggable):
     def from_booster_code(
         cls,
         code: str,
+        coordinate_space: CoordinateSpace = _DEFAULT_COORD_SPACE,
         raise_if_invalid: bool = True,
         coords: "GalacticCoords" = None,
         start_state: _BoosterCodeState = _BoosterCodeState.BoosterID,
@@ -197,7 +332,7 @@ class GalacticCoords(Loggable):
         parser = booster_string_parser(code, start_state=start_state, sep=sep)
         state = _CodeState.Empty
         if coords is None:
-            coords = GalacticCoords()
+            coords = GalacticCoords(coordinate_space=coordinate_space)
         for v, s in parser:
             if s == _BoosterCodeState.BoosterID:
                 # Ignore the scanner id
@@ -219,7 +354,7 @@ class GalacticCoords(Loggable):
 
             try:
                 int_val = int(v, 16)
-                setattr(coords, s.name, _value_from_booster(s, int_val))
+                setattr(coords, s.name, coordinate_space.from_galactic(s, int_val))
             except Exception as e:
                 state = _CodeState.Invalid
                 cls.try_log_error(f"{e}")
@@ -236,6 +371,7 @@ class GalacticCoords(Loggable):
     def from_portal_code(
         cls,
         code: str,
+        coordinate_space: CoordinateSpace = _DEFAULT_COORD_SPACE,
         raise_if_invalid: bool = True,
         coords: "GalacticCoords" = None,
     ) -> "GalacticCoords":
@@ -247,7 +383,7 @@ class GalacticCoords(Loggable):
         parser = portal_string_parser(code)
         state = _CodeState.Empty
         if not coords:
-            coords = GalacticCoords()
+            coords = GalacticCoords(coordinate_space=coordinate_space)
         for v, s in parser:
             if s == _PortalCodeState.x:
                 state = _CodeState.Complete
@@ -256,7 +392,7 @@ class GalacticCoords(Loggable):
 
             try:
                 int_val = int(v, 16)
-                setattr(coords, s.name, int_val)
+                setattr(coords, s.name, coordinate_space.from_portal(s, int_val))
             except Exception as e:
                 state = _CodeState.Invalid
                 cls.try_log_error(f"{e}")
@@ -295,52 +431,6 @@ _PORTAL_TOKEN_LENGHT = {
 
 def _check_token_length(state: _BoosterCodeState, token: str) -> bool:
     return len(token) == _BOOSTER_TOKEN_LENGTH[state]
-
-
-def _y_from_booster(value: int) -> int:
-    # TODO check range
-    if value < 0x7F:
-        return 0x81 + value
-    return value - 0x7F
-
-
-def _y_to_booster(value: int) -> int:
-    if value > 0x80:
-        return value - 0x81
-    return value + 0x7F
-
-
-def _xz_from_booster(value: int) -> int:
-    # TODO check range
-    if value < 0x7FF:
-        return 0x801 + value
-    return value - 0x7FF
-
-
-def _xz_to_booster(value: int) -> int:
-    if value > 0x800:
-        return value - 0x801
-    return value + 0x7FF
-
-
-def _value_from_booster(s: _BoosterCodeState, v: int) -> int:
-    if s == _BoosterCodeState.y:
-        return _y_from_booster(v)
-    if s == _BoosterCodeState.x:
-        return _xz_from_booster(v)
-    if s == _BoosterCodeState.z:
-        return _xz_from_booster(v)
-    return v
-
-
-def _value_to_booster(f: str, v: int) -> int:
-    if f == "y":
-        return _y_to_booster(v)
-    if f == "x":
-        return _xz_to_booster(v)
-    if f == "z":
-        return _xz_to_booster(v)
-    return v
 
 
 def booster_string_parser(

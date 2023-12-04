@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from nomanssky import GalacticCoords
+from nomanssky import GalacticCoords, CoordinateSpace, enum_by_name
 from nomanssky.ansicolour import Colour8Bit as cl, Options as opts, CLEAR as clear
 
 
@@ -25,6 +25,14 @@ def parse_args():
         default="dec",
         choices=["dec", "hex"],
         help="Output format, decimal or hexademic",
+    )
+    parser.add_argument(
+        "-s",
+        "--space",
+        type=str,
+        default="portal",
+        choices=["portal", "galactic"],
+        help="Coordinate space for X, Y and Z data",
     )
 
     return parser.parse_args()
@@ -60,6 +68,7 @@ def print_info(coords: GalacticCoords, format: str) -> None:
     print_any(coords.portal_code, "Portal code", cl.RED)
     print_any(coords.galactic_coords, "Galactic coords", cl.RED)
     print_any(coords.xyz, "XYZ", cl.RED)
+    print_any(coords.coordinate_space.name, "Coord space", cl.GREEN)
 
     print_fn(coords.x, "X", cl.GREEN)
     print_fn(coords.y, "Y", cl.GREEN)
@@ -76,7 +85,9 @@ def main():
             # Read from stdin
             input = stdin_input()
         for code in input:
-            coords = GalacticCoords(code)
+            coords = GalacticCoords(
+                code, coordinate_space=enum_by_name(CoordinateSpace, args.space.title())
+            )
             print_info(coords, args.format)
     except ValueError as e:
         print(f"{e}", file=sys.stderr)
