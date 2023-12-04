@@ -22,7 +22,7 @@ def parse_args():
         "items",
         type=str,
         nargs="+",
-        help="No Man's Sky item to show",
+        help="No Man's Sky items to show",
     )
     parser.add_argument(
         "-v",

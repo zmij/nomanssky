@@ -14,3 +14,7 @@ class Loggable:
 
     def log_none(self, *args) -> None:
         ...
+
+    @classmethod
+    def get_class_logger(cls) -> logging.Logger:
+        logging.getLogger(cls.__name__)

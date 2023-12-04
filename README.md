@@ -15,6 +15,9 @@ different items in No Man's Sky.
 
 ## Top-level scripts
 
+* `booster2portal.py` - convert [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code to [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address)
+* `portal2booster.py` - convert [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address) to [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code
+* `xyz.py` - parse [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address) or [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code and print a string compatible with [Coordinate Plotting App](https://nomanssky.fandom.com/wiki/Coordinate_Plotting_App)
 * `crawl.py` - parse Wiki and store data to databse. Won't request items that are already in database.
 * `parse_page.py` - load a page from Wiki, parse it and store to the db.
 * `clean_data.py` - clear the database. Might be required with the future releases if database scheme changes.
@@ -24,9 +27,26 @@ different items in No Man's Sky.
 * `f.py` - formula graph traversal tool, for debug purposes.
 * `load_page.py` - mostly a debug script to async load a wiki page and dump it's contents.
 
+You can always call any script with `-h` argument to see what input it expects.
+
 ## Libary usage
 
-TODO
+### Coordinate parsing and conversion
+
+```python
+from nomanssky import GalacticGoords
+
+# Booster code
+coords = GalacticCoords(code="HUKYA:046A:0081:0D6D:0038")
+# -- or ---
+# Portal code
+coords = GalacticCoords(code="00380256EC6B")
+
+print(f"X: {coords.x} Y: {coords.y} Z: {coords.z}")
+print(f"Star system: {coords.star_system}")
+print(f"Planet index: {coords.planet}")
+
+```
 
 ## Dependencies
 
@@ -47,3 +67,9 @@ Apart from the python's standard library the library uses the following libs:
 There are a couple of modules in the library that are somewhat utility stuff
 (terminal coloring, database helpers and graph traversal). Those modules might
 be later moved out if they prove mature.
+
+## Disclaimer
+
+This code is not covered with tests (yet), so a number of bugs can still be 
+there. Feel free to create an issue if you are not happy with something, but
+don't expect that I will be very fast to fix it.
