@@ -163,7 +163,7 @@ class Item(Loggable, JSONDecoder):
     def on_load(
         self,
         conn: sqlite3.Connection,
-        load_fn: Callable[[type, Any], List[type]],
+        load_fn: Callable[[Any, Any], List[Any]],
     ) -> None:
         if load_fn:
             links: List[ItemFormulaLink] = ItemFormulaLink.load(conn, item_id=self.id)

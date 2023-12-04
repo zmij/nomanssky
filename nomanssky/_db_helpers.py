@@ -3,7 +3,7 @@ import sqlite3
 import datetime
 
 from typing import Callable, Generic, List, TypeVar, Any, Tuple, get_args
-from enum import EnumType
+from enum import Enum
 
 T = TypeVar("T")
 
@@ -169,7 +169,7 @@ STORED_TYPES = {
 def stored_type(field_type: type) -> str:
     if field_type in STORED_TYPES:
         return STORED_TYPES[field_type]
-    if isinstance(field_type, EnumType):
+    if issubclass(field_type, Enum):
         return "text"
     return field_type.__name__
 
@@ -204,17 +204,16 @@ class StoredField(Generic[T]):
         self.unique = unique
 
     def __set_name__(self, owner, name) -> None:
-        field_type = get_args(self.__orig_class__)[0]
-        store_type = stored_type(self.store_as or field_type)
-        # print(f"{owner.__name__}.{name} : {field_type} -> {store_type}")
+        field_type: type = get_args(self.__orig_class__)[0]
+        store_type: type = stored_type(self.store_as or field_type)
 
         if field_type is datetime.datetime and self.to_db is None:
             self.to_db = lambda s: f"{s}"
         if field_type is datetime.datetime and self.from_db is None:
             self.from_db = lambda s: datetime.datetime.fromisoformat(s)
-        if isinstance(field_type, EnumType) and self.to_db is None:
+        if self.to_db is None and issubclass(field_type, Enum):
             self.to_db = lambda s: s.value
-        if isinstance(field_type, EnumType) and self.from_db is None:
+        if self.from_db is None and issubclass(field_type, Enum):
             # print(f"Make converter for {field_type}")
             self.from_db = lambda s: field_type(s)
 

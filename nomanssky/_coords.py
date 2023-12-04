@@ -32,6 +32,8 @@ class _BoosterCodeState(IntEnum):
     planet = 4
     star_system = 5
     DONE = 6
+    INCOMPLETE = 100499
+    ERROR = 100500
 
     def next(self) -> "_BoosterCodeState":
         return _BoosterCodeState(self.value + 1)
@@ -43,6 +45,9 @@ class _PortalCodeState(IntEnum):
     y = 2
     z = 3
     x = 4
+    DONE = 5
+    INCOMPLETE = 100499
+    ERROR = 100500
 
     def next(self) -> "_PortalCodeState":
         return _PortalCodeState(self.value + 1)
@@ -208,7 +213,7 @@ class GalacticCoords(Loggable):
         if code:
             if sep != ":" or code.find(sep) >= 0:
                 # Try parse booster string
-                _, booster_state = GalacticCoords.from_booster_code(
+                _, booster_state, _ = GalacticCoords.from_booster_code(
                     code,
                     coordinate_space=coordinate_space,
                     raise_if_invalid=False,
@@ -333,18 +338,24 @@ class GalacticCoords(Loggable):
         state = _CodeState.Empty
         if coords is None:
             coords = GalacticCoords(coordinate_space=coordinate_space)
-        for v, s in parser:
+
+        last_idx = -1
+        prev_idx = -1
+        for v, s, n in parser:
+            prev_idx = last_idx
+            last_idx = n
             if s == _BoosterCodeState.BoosterID:
                 # Ignore the scanner id
                 continue
 
-            if s >= _BoosterCodeState.DONE:
+            # print(f"{s!r} {v}")
+
+            if s == _BoosterCodeState.ERROR:
                 state = _CodeState.Invalid
                 break
 
-            if not _check_token_length(s, v):
-                cls.try_log_error(f"Invalid token length for {s}: {v}")
-                state = _CodeState.Invalid
+            if s == _BoosterCodeState.INCOMPLETE:
+                state = _CodeState.Incomplete
                 break
 
             if s >= complete_after:
@@ -353,9 +364,10 @@ class GalacticCoords(Loggable):
                 state = _CodeState.Incomplete
 
             try:
-                int_val = int(v, 16)
-                setattr(coords, s.name, coordinate_space.from_galactic(s, int_val))
+                setattr(coords, s.name, coordinate_space.from_galactic(s, v))
             except Exception as e:
+                # Restore last_idx
+                last_idx = prev_idx
                 state = _CodeState.Invalid
                 cls.try_log_error(f"{e}")
                 break
@@ -365,7 +377,7 @@ class GalacticCoords(Loggable):
                     f"`{code}` is an {state.name.lower()} value for {parse_entity}"
                 )
             return coords
-        return coords, state
+        return coords, state, last_idx
 
     @classmethod
     def from_portal_code(
@@ -384,15 +396,20 @@ class GalacticCoords(Loggable):
         state = _CodeState.Empty
         if not coords:
             coords = GalacticCoords(coordinate_space=coordinate_space)
-        for v, s in parser:
+        last_idx = -1
+        for v, s, n in parser:
+            if s == _PortalCodeState.ERROR:
+                state = _CodeState.Invalid
+                last_idx = n
+                break
             if s == _PortalCodeState.x:
                 state = _CodeState.Complete
             else:
                 state = _CodeState.Incomplete
 
             try:
-                int_val = int(v, 16)
-                setattr(coords, s.name, coordinate_space.from_portal(s, int_val))
+                setattr(coords, s.name, coordinate_space.from_portal(s, v))
+                last_idx = n
             except Exception as e:
                 state = _CodeState.Invalid
                 cls.try_log_error(f"{e}")
@@ -403,7 +420,7 @@ class GalacticCoords(Loggable):
                     f"`{code}` is an {state.name.lower()} value for portal code"
                 )
             return coords
-        return coords, state
+        return coords, state, last_idx
 
     @classmethod
     def try_log_error(cls, message: str) -> None:
@@ -430,6 +447,8 @@ _PORTAL_TOKEN_LENGHT = {
 
 
 def _check_token_length(state: _BoosterCodeState, token: str) -> bool:
+    if state == _BoosterCodeState.BoosterID:
+        return True
     return len(token) == _BOOSTER_TOKEN_LENGTH[state]
 
 
@@ -439,37 +458,81 @@ def booster_string_parser(
     sep: str = ":",
 ):
     state = start_state
-    curr_val = ""
+    token = ""
+    curr_val = 0
 
-    for c in beacon_code:
-        if c == sep:
-            yield curr_val, state
-            curr_val = ""
+    last_idx = -1
+    last_yield = -1
+    for n, c in enumerate(beacon_code):
+        if state != _BoosterCodeState.BoosterID and c != sep:
+            try:
+                curr_val = curr_val * 16 + int(c, 16)
+            except ValueError:
+                yield curr_val, _BoosterCodeState.ERROR, last_idx
+                return
+        elif c != sep:
+            if ord(c) < ord("A") or ord("Z") < ord(c):
+                yield token, _BoosterCodeState.ERROR, last_idx
+                return
+
+        last_idx = n
+
+        if c != sep:
+            token += c
+
+        if c == sep and state == _BoosterCodeState.BoosterID:
+            yield token, state, last_idx
+            token = ""
+            state = state.next()
+            last_yield = last_idx
+        elif c == sep and token and not _check_token_length(state, token):
+            yield curr_val, _BoosterCodeState.ERROR, last_yield
+            return
+        elif state != _BoosterCodeState.BoosterID and _check_token_length(state, token):
+            yield curr_val, state, last_idx
+            last_yield = last_idx
+            token = ""
+            curr_val = 0
+            if state == _BoosterCodeState.star_system:
+                return
             state = state.next()
             continue
-        if state == _BoosterCodeState.planet:
-            yield c, state
-            curr_val = ""
-            state = state.next()
-            continue
-        curr_val += c
 
-    yield curr_val, state
+    if state < _BoosterCodeState.DONE:
+        if state != _BoosterCodeState.BoosterID:
+            if not _check_token_length(state, token):
+                yield curr_val, _BoosterCodeState.INCOMPLETE, last_idx
+                return
+            yield curr_val, state, last_idx
+        else:
+            yield token, state, last_idx
 
 
 def portal_string_parser(portal_code: str):
     state = _PortalCodeState.planet
-    curr_val = ""
+    curr_val = 0
+    token = ""
     token_length = _PORTAL_TOKEN_LENGHT[state]
 
-    for c in portal_code:
-        curr_val += c
-        if len(curr_val) == token_length:
-            yield curr_val, state
+    last_idx = -1
+    for n, c in enumerate(portal_code):
+        try:
+            v = int(c, 16)
+            last_idx = n
+            curr_val = curr_val * 16 + v
+            token += c
+            if len(token) == token_length:
+                yield curr_val, state, last_idx
 
-            if state == _PortalCodeState.x:
-                return
+                if state == _PortalCodeState.x:
+                    return
 
-            curr_val = ""
-            state = state.next()
-            token_length = _PORTAL_TOKEN_LENGHT[state]
+                curr_val = 0
+                token = ""
+                state = state.next()
+                token_length = _PORTAL_TOKEN_LENGHT[state]
+        except ValueError:
+            yield curr_val, _PortalCodeState.ERROR, last_idx
+            return
+    if token:
+        yield curr_val, _PortalCodeState.INCOMPLETE, last_idx
