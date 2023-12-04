@@ -1,5 +1,4 @@
 from enum import IntEnum
-from typing import Tuple
 
 from ._loggable import Loggable
 
@@ -69,13 +68,13 @@ class GalacticCoords(Loggable):
 
     def __init__(
         self,
+        code: str = None,
         *,
         planet: int = None,
         star_system: int = None,
         y: int = None,
         x: int = None,
         z: int = None,
-        code: str = None,
         sep: str = ":",
     ) -> None:
         self.planet = planet
@@ -97,6 +96,8 @@ class GalacticCoords(Loggable):
                     start_state=_BoosterCodeState.x,
                     coords=self,
                     sep=sep,
+                    parse_entity="galatic coords",
+                    complete_after=_BoosterCodeState.z,
                 )
             else:
                 GalacticCoords.from_portal_code(code, coords=self)
@@ -132,10 +133,17 @@ class GalacticCoords(Loggable):
 
     @property
     def portal_code(self) -> str:
-        if not self.valid:
-            return f"Invalid coords p={self.planet} s={self.star_system} y={self.y} z={self.z} x={self.x}"
-        return (
-            f"{self.planet:X}{self.star_system:03X}{self.y:02X}{self.z:03X}{self.x:03X}"
+        return "".join(
+            [
+                f"{{:{fmt}}}".format(v or 0)
+                for v, fmt in [
+                    (self.planet, "1X"),
+                    (self.star_system, "03X"),
+                    (self.y, "02x"),
+                    (self.z, "03x"),
+                    (self.x, "03x"),
+                ]
+            ]
         )
 
     @property
@@ -151,7 +159,7 @@ class GalacticCoords(Loggable):
                     (_xz_to_booster(self.x), "04X"),
                     (_y_to_booster(self.y), "04X"),
                     (_xz_to_booster(self.z), "04X"),
-                    (self.planet * 0x1000 + self.star_system, "04X"),
+                    ((self.planet or 0) * 0x1000 + (self.star_system or 0), "04X"),
                 ]
                 if v is not None
             ]
@@ -178,6 +186,8 @@ class GalacticCoords(Loggable):
         coords: "GalacticCoords" = None,
         start_state: _BoosterCodeState = _BoosterCodeState.BoosterID,
         sep: str = ":",
+        complete_after: _BoosterCodeState = _BoosterCodeState.star_system,
+        parse_entity: str = "booster code",
     ) -> "GalacticCoords":
         """
         Parse signal booster string
@@ -202,7 +212,7 @@ class GalacticCoords(Loggable):
                 state = _CodeState.Invalid
                 break
 
-            if s == _BoosterCodeState.star_system:
+            if s >= complete_after:
                 state = _CodeState.Complete
             else:
                 state = _CodeState.Incomplete
@@ -217,7 +227,7 @@ class GalacticCoords(Loggable):
         if raise_if_invalid:
             if state != _CodeState.Complete:
                 raise ValueError(
-                    f"`{code}` is an {state.name.lower()} value for booster code"
+                    f"`{code}` is an {state.name.lower()} value for {parse_entity}"
                 )
             return coords
         return coords, state

@@ -18,6 +18,7 @@ different items in No Man's Sky.
 * `booster2portal.py` - convert [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code to [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address)
 * `portal2booster.py` - convert [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address) to [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code
 * `xyz.py` - parse [Portal Address](https://nomanssky.fandom.com/wiki/Portal_address) or [Signal Booster](https://nomanssky.fandom.com/wiki/Signal_Booster) code and print a string compatible with [Coordinate Plotting App](https://nomanssky.fandom.com/wiki/Coordinate_Plotting_App)
+* `decode_coords.py` - decode a coord string (portal address, signal booster code or galactical coords) and print out Portal code, Galactic coords, XYZ, X, Y, Z, Star system and planet.
 * `crawl.py` - parse Wiki and store data to databse. Won't request items that are already in database.
 * `parse_page.py` - load a page from Wiki, parse it and store to the db.
 * `clean_data.py` - clear the database. Might be required with the future releases if database scheme changes.
@@ -38,6 +39,9 @@ from nomanssky import GalacticGoords
 
 # Booster code
 coords = GalacticCoords(code="HUKYA:046A:0081:0D6D:0038")
+# -- or --
+# Galactic coords
+coords = GalacticCoords(code="046A:0081:0D6D:0038")
 # -- or ---
 # Portal code
 coords = GalacticCoords(code="00380256EC6B")
