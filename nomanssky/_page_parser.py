@@ -71,7 +71,7 @@ class PageParser(Loggable):
             async with self.session.get(self.url) as resp:
                 html = await resp.text()
                 self._real_url = resp.real_url
-                self.doc = bs4.BeautifulSoup(html, features="lxml")
+                self.doc = bs4.BeautifulSoup(html)
         return self.doc
 
     async def content(self) -> bs4.Tag:
