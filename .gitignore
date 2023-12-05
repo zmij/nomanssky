@@ -4,6 +4,8 @@
 *.sqlite
 # VS code workspace
 *.code-workspace
+# Apple OS stuff
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

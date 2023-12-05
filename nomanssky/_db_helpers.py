@@ -5,6 +5,8 @@ import datetime
 from typing import Callable, Generic, List, TypeVar, Any, Tuple, get_args
 from enum import Enum
 
+from ._where import build_expression
+
 T = TypeVar("T")
 
 __all__ = [
@@ -377,7 +379,7 @@ from {table_name}
     ) -> List[cls]:
         # TODO order
         cursor = None
-        if kwargs:
+        if args or kwargs:
             # TODO more comlicated where
             args_names = [x for x, _ in kwargs.items()]
             missing = set(args_names) - attr_set
@@ -385,10 +387,9 @@ from {table_name}
                 raise KeyError(
                     f"{cls.__name__} doesn't have {missing} fields in database"
                 )
-            field_names = [attr_map[x].field for x in args_names]
-            query_args = tuple([x for x in kwargs.values()])
-            where_clause = " where " + " and ".join([f"{x} = ?" for x in field_names])
-            cursor = conn.execute(select_query + where_clause, query_args)
+            where = build_expression(*args, **kwargs)
+            where_clause = " where " + where.expression
+            cursor = conn.execute(select_query + where_clause, where.params)
         else:
             cursor = conn.execute(select_query)
         objs = [_make_object(*row) for row in cursor]
