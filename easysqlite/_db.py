@@ -6,8 +6,6 @@ import os
 from functools import wraps
 from typing import Callable
 
-from ._loggable import Loggable
-
 
 def connected(func):
     @wraps(func)
@@ -17,12 +15,10 @@ def connected(func):
     return connected_func
 
 
-class DB(Loggable):
+class Database:
     def __init__(
         self, dbname: str, do_setup: Callable[[sqlite3.Connection], None] = None
     ) -> None:
-        super().__init__(logging.getLogger("db"))
-        self.log_debug(f"Open database {dbname}")
         self.dbname_ = dbname
         self.conn_ = {}
         self.ensure_dir_exists()

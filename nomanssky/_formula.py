@@ -5,8 +5,9 @@ import logging
 from enum import Enum
 from typing import List, Set, Any, Tuple
 
+from easysqlite import StoredField, stored_class
+
 from ._loggable import Loggable
-from ._db_helpers import StoredField, stored_class
 from ._json import JSONDecoder, JSONEncoder
 from ._utils import int_digest
 

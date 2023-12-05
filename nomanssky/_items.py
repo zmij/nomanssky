@@ -6,11 +6,12 @@ from typing import Any, List, Set, Callable
 
 from enum import Enum
 
+from easysqlite import StoredField, stored_class
+
 from ._loggable import Loggable
 from ._attributes import Type, Rarity, Class
 from ._infobox import Infobox
 from ._formula import Formula, FormulaType
-from ._db_helpers import StoredField, stored_class
 from ._utils import enum_by_name, int_digest
 from ._json import JSONDecoder
 

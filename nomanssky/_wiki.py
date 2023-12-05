@@ -6,12 +6,12 @@ import datetime
 from typing import Optional, Type, Dict, Tuple, List, Set, Any, Iterable
 from types import TracebackType
 
+from easysqlite import Database, Field as DBField
+
 from ._loggable import Loggable
 from ._page_parser import PageParser
 from ._items import Item, ItemFormulaLink
 from ._formula import Formula
-from ._db import DB
-from ._where import Field as DBField
 
 
 class Wiki(Loggable):
@@ -21,13 +21,13 @@ class Wiki(Loggable):
 
     _session: aiohttp.ClientSession
     _items: Dict[str, Item]
-    _db: DB
+    _db: Database
 
     def __init__(self, db_name: str = "data/nms.sqlite") -> None:
         super().__init__()
         self._session = None
         self._items = {}
-        self._db = DB(db_name, self.setup_db)
+        self._db = Database(db_name, self.setup_db)
         self._req_made = 0
 
     def setup_db(self, conn: sqlite3.Connection) -> None:

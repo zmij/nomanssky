@@ -1,7 +1,7 @@
 import pytest
 from collections import namedtuple
 
-from nomanssky._where import *
+from easysqlite._where import *
 
 
 def test_base_expression():
