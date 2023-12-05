@@ -119,8 +119,8 @@ class Item(Loggable, JSONDecoder):
             "symbol": self.symbol,
             "utime": f"{self.utime}",
             "cls": self.cls.value,
-            "type": self.type.name,
-            "rarity": self.rarity.value,
+            "type": self.type and self.type.name or None,
+            "rarity": self.rarity and self.rarity.value or None,
             "category": self.category,
             "image": self.image,
             "value": self.value,
@@ -164,6 +164,7 @@ class Item(Loggable, JSONDecoder):
         self,
         conn: sqlite3.Connection,
         load_fn: Callable[[Any, Any], List[Any]],
+        *args,
     ) -> None:
         if load_fn:
             links: List[ItemFormulaLink] = ItemFormulaLink.load(conn, item_id=self.id)

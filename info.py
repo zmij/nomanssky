@@ -36,11 +36,11 @@ async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
     async with nomanssky.Wiki() as wiki:
-        item = await wiki.get_item(args.item)
-        if item is None:
+        items = await wiki.search_item(args.item)
+        if items is None:
             print(f"No item {args.item} found")
             return
-        print(json.dumps(item, cls=nomanssky.JSONEncoder))
+        print(json.dumps(items, cls=nomanssky.JSONEncoder))
 
 
 if __name__ == "__main__":

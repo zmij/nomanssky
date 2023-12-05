@@ -11,6 +11,7 @@ from ._page_parser import PageParser
 from ._items import Item, ItemFormulaLink
 from ._formula import Formula
 from ._db import DB
+from ._where import Field as DBField
 
 
 class Wiki(Loggable):
@@ -78,6 +79,15 @@ class Wiki(Loggable):
             return self._items[item_id], in_db
         return self._items[item_id]
 
+    async def search_item(self, search_string: str) -> List[Item]:
+        search_expr = f"%{search_string}%"
+        expr = (
+            DBField("lower(id)").like(search_expr)
+            | DBField("lower(name)").like(search_expr)
+            | ((DBField("symbol") != None) & DBField("lower(symbol)").like(search_expr))
+        )
+        return self.load_entities(Item, expr)
+
     async def get_items(self, items_ids: Iterable[str]) -> List[Item]:
         tasks = [asyncio.create_task(self.get_item(id)) for id in items_ids]
         items = await asyncio.gather(*tasks)
@@ -116,9 +126,9 @@ class Wiki(Loggable):
         if commit:
             conn.commit()
 
-    def load_entities(self, cls: type, **kwargs) -> List[Any]:
+    def load_entities(self, cls: type, *args, **kwargs) -> List[Any]:
         conn = self._db.connection()
-        return cls.load(conn, self.load_entities, **kwargs)
+        return cls.load(conn, self.load_entities, *args, **kwargs)
 
     async def __aenter__(self) -> "Wiki":
         self._session_start = datetime.datetime.now()
