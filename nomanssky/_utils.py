@@ -31,7 +31,7 @@ def digest(*args) -> bytes:
 
 def int_digest(*args) -> bytes:
     d = digest(*args)
-    return int.from_bytes(d) % _PRIME
+    return int.from_bytes(d, byteorder="big") % _PRIME
 
 
 T = TypeVar("T")
