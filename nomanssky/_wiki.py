@@ -55,9 +55,12 @@ class Wiki(Loggable):
         self._req_made += 1
         return await parser.parse()
 
-    async def get_item(self, item_id: str, return_in_db: bool = False) -> Item:
+    async def get_item(
+        self, item_id: str, *, db_only: bool = False, return_in_db: bool = False
+    ) -> Item:
         in_db = False
         if item_id not in self._items:
+            item = None
             # First try the database
             items = self.load_entities(Item, id=item_id)
             if items:
@@ -65,31 +68,52 @@ class Wiki(Loggable):
                 item = items[0]
                 in_db = True
                 # TODO check item is stale
-            else:
+            elif not db_only:
                 self.log_info(f"Item {item_id} not found in database")
                 item, _ = await self.parse_page(item_id)
                 if item is None:
                     self.log_warning(f"Item {item_id} not found")
                 else:
                     self.store_to_db(item)
-            self._items[item_id] = item
+            if item:
+                self._items[item_id] = item
         else:
             self.log_none(f"Item {item_id} found in cache")
         if return_in_db:
             return self._items[item_id], in_db
-        return self._items[item_id]
+        if item_id in self._items:
+            return self._items[item_id]
+        return None
 
-    async def search_item(self, search_string: str) -> List[Item]:
-        search_expr = f"%{search_string}%"
-        expr = (
-            DBField("lower(id)").like(search_expr)
-            | DBField("lower(name)").like(search_expr)
-            | ((DBField("symbol") != None) & DBField("lower(symbol)").like(search_expr))
-        )
-        return self.load_entities(Item, expr)
+    async def search_item(
+        self, search_string: str = None, *args, **kwargs
+    ) -> List[Item]:
+        if search_string:
+            search_expr = f"%{search_string}%"
+            expr = (
+                DBField("lower(id)").like(search_expr)
+                | DBField("lower(name)").like(search_expr)
+                | (
+                    (DBField("symbol") != None)
+                    & DBField("lower(symbol)").like(search_expr)
+                )
+            )
+            items = self.load_entities(Item, expr, *args, **kwargs)
+        else:
+            items = self.load_entities(Item, *args, **kwargs)
+        # Replace item in cache (or should we replace items in the return?)
+        for i in range(0, len(items)):
+            item = items[i]
+            self._items[item.id] = item
 
-    async def get_items(self, items_ids: Iterable[str]) -> List[Item]:
-        tasks = [asyncio.create_task(self.get_item(id)) for id in items_ids]
+        return items
+
+    async def get_items(
+        self, items_ids: Iterable[str], *, db_only: bool = False
+    ) -> List[Item]:
+        tasks = [
+            asyncio.create_task(self.get_item(id, db_only=db_only)) for id in items_ids
+        ]
         items = await asyncio.gather(*tasks)
         return [x for x in items if x is not None]
 
@@ -126,12 +150,13 @@ class Wiki(Loggable):
         if commit:
             conn.commit()
 
-    def load_entities(self, cls: type, *args, **kwargs) -> List[Any]:
+    def load_entities(self, _cls: type, *args, **kwargs) -> List[Any]:
         conn = self._db.connection()
-        return cls.load(conn, self.load_entities, *args, **kwargs)
+        return _cls.load(conn, self.load_entities, *args, **kwargs)
 
     async def __aenter__(self) -> "Wiki":
         self._session_start = datetime.datetime.now()
+        self.log_info("Async session start")
         return self
 
     async def __aexit__(
@@ -141,8 +166,9 @@ class Wiki(Loggable):
         exc_tb: Optional[TracebackType],
     ) -> None:
         elapsed = datetime.datetime.now() - self._session_start
-        self.log_info(
-            f"Session took {elapsed}. Made {self._req_made} requests to Wiki."
-        )
         if self._session is not None:
+            self.log_info(
+                f"Session took {elapsed}. Made {self._req_made} requests to Wiki."
+            )
             await self._session.close()
+            self._session = None

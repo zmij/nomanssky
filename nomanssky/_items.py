@@ -97,6 +97,12 @@ class Item(Loggable, JSONDecoder):
             return self.total_value
         return 0.0
 
+    @property
+    def name_with_symbol(self) -> str:
+        if self.has_symbol:
+            return f"{self.name} ({self.symbol})"
+        return self.name
+
     @value.setter
     def value(self, value: float) -> None:
         ...

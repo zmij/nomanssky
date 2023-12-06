@@ -70,6 +70,9 @@ class _DequeWrapper(Generic[T]):
     def pop(self) -> T:
         ...
 
+    def clear(self) -> None:
+        self._elements.clear()
+
 
 class FIFO(_DequeWrapper[T]):
     """A FIFO adapter for container"""

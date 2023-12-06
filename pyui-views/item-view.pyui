@@ -1,0 +1,123 @@
+[
+  {
+    "nodes" : [
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 70}, {308, 404}}",
+        "class" : "WebView",
+        "attributes" : {
+          "uuid" : "7A2BF2DA-E87E-44CC-B5D6-49C03E3F1E05",
+          "frame" : "{{60, 140}, {200, 200}}",
+          "scales_to_fit" : true,
+          "class" : "WebView",
+          "name" : "webview",
+          "flex" : "WH"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 70}, {308, 404}}",
+        "class" : "TableView",
+        "attributes" : {
+          "flex" : "WH",
+          "data_source_items" : "Row 1\nRow 2\nRow 3",
+          "name" : "formulas_view",
+          "frame" : "{{60, 140}, {200, 200}}",
+          "uuid" : "F304C9D9-AB33-4AFA-A116-B5B6694E0878",
+          "data_source_number_of_lines" : 1,
+          "class" : "TableView",
+          "data_source_font_size" : 18,
+          "background_color" : "RGBA(1.0, 1.0, 1.0, 1.0)",
+          "row_height" : 44,
+          "data_source_delete_enabled" : false
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{0, 0}, {320, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "flex" : "W",
+          "name" : "item_name",
+          "frame" : "{{88, 173}, {150, 32}}",
+          "uuid" : "A55DAF63-28AD-4C7C-B345-85C528C20F4C",
+          "class" : "Label",
+          "alignment" : "center",
+          "text" : "Nothing Selected",
+          "font_size" : 18,
+          "font_name" : "<System>"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{0, 0}, {60, 60}}",
+        "class" : "ImageView",
+        "attributes" : {
+          "flex" : "RB",
+          "frame" : "{{113, 139}, {100, 100}}",
+          "class" : "ImageView",
+          "name" : "item_image",
+          "uuid" : "C9F09E51-737E-4ECC-8590-E7D7305B9E67"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{98, 31}, {222, 31}}",
+        "class" : "SegmentedControl",
+        "attributes" : {
+          "segments" : "source|bom|target|wiki",
+          "frame" : "{{100, 226}, {120, 29}}",
+          "uuid" : "7E9DC98B-4F70-426B-ACE5-E860029B74B4",
+          "name" : "state_control",
+          "class" : "SegmentedControl",
+          "flex" : "L"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 225}, {308, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "font_size" : 18,
+          "flex" : "WTB",
+          "frame" : "{{85, 224}, {150, 32}}",
+          "uuid" : "01AE9440-583F-48B3-81EB-1CF6E95FC3AD",
+          "class" : "Label",
+          "alignment" : "center",
+          "text" : "Nothing to show here, sorry",
+          "name" : "no_way",
+          "font_name" : "<System>"
+        },
+        "selected" : true
+      }
+    ],
+    "frame" : "{{0, 0}, {320, 480}}",
+    "class" : "View",
+    "attributes" : {
+      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+      "enabled" : true,
+      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
+      "custom_class" : "ItemView",
+      "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "flex" : ""
+    },
+    "selected" : false
+  }
+]

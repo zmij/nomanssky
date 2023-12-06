@@ -375,7 +375,11 @@ from {table_name}
     has_on_load = hasattr(cls, "on_load")
 
     def _select_fn(
-        cls: type, conn: sqlite3.Connection, *args, order: List[str] = None, **kwargs
+        the_cls: type,
+        conn: sqlite3.Connection,
+        *args,
+        order: List[str] = None,
+        **kwargs,
     ) -> List[cls]:
         # TODO order
         cursor = None
@@ -385,7 +389,7 @@ from {table_name}
             missing = set(args_names) - attr_set
             if missing:
                 raise KeyError(
-                    f"{cls.__name__} doesn't have {missing} fields in database"
+                    f"{the_cls.__name__} doesn't have {missing} fields in database"
                 )
             where = build_expression(*args, **kwargs)
             where_clause = " where " + where.expression
