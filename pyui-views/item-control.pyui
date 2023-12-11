@@ -1,0 +1,51 @@
+[
+  {
+    "nodes" : [
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{0, 0}, {40, 40}}",
+        "class" : "ImageView",
+        "attributes" : {
+          "frame" : "{{97, 28}, {100, 100}}",
+          "image_name" : "iob:image_32",
+          "tint_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+          "class" : "ImageView",
+          "name" : "image",
+          "uuid" : "11DBA80F-72DB-47F5-95E0-7D76E481C784"
+        },
+        "selected" : true
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{43, 4}, {250, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "name" : "name_label",
+          "frame" : "{{72, 62}, {150, 32}}",
+          "uuid" : "E31B25FE-B3B0-4102-B929-116606A35568",
+          "class" : "Label",
+          "alignment" : "left",
+          "text" : "Name",
+          "font_size" : 18,
+          "font_name" : "<System>"
+        },
+        "selected" : false
+      }
+    ],
+    "frame" : "{{0, 0}, {293, 156}}",
+    "class" : "View",
+    "attributes" : {
+      "custom_class" : "ItemControl",
+      "enabled" : true,
+      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
+      "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "flex" : ""
+    },
+    "selected" : false
+  }
+]

@@ -241,6 +241,7 @@ Class._errata_ = {
     "component of the multi-tool": Class.MultiToolComponent,
     "upgrade for the multi-tool": Class.MultiToolUpgrade,
     "an exocraft upgrade": Class.ExocraftUpgrade,
+    "tradeable item": Class.Tradeable,
 }
 
 """

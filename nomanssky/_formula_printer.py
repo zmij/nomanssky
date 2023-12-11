@@ -144,7 +144,7 @@ class FormulaPrinter(Loggable):
                 time = f" {f.time:.2f} sec/unit"
             signs = ""
             if await self.wiki.check_formula_contains(f, item):
-                signs = " " + Symbols.RECYCLE
+                signs = " " + Symbols.RECYCLE.value
             print(
                 self.format_item(
                     item,

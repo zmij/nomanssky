@@ -48,14 +48,20 @@ class Item(Loggable, JSONDecoder):
     source_items: Set[str]
 
     def __init__(
-        self, *, url: str, cls: Class, infobox: Infobox, formulas: List[Formula]
+        self,
+        *,
+        url: str,
+        cls: Class,
+        infobox: Infobox = None,
+        formulas: List[Formula] = [],
     ) -> None:
         super().__init__()
         self.rarity = Rarity.UNKNOWN
         self.utime = datetime.datetime.now()
 
-        for k, v in infobox.__dict__.items():
-            setattr(self, k, v)
+        if infobox is not None:
+            for k, v in infobox.__dict__.items():
+                setattr(self, k, v)
         self.id = url.split("/")[-1]
         self.cls = cls
 
@@ -100,6 +106,12 @@ class Item(Loggable, JSONDecoder):
     @value.setter
     def value(self, value: float) -> None:
         ...
+
+    @property
+    def name_with_symbol(self) -> str:
+        if self.has_symbol:
+            return f"{self.name} ({self.symbol})"
+        return self.name
 
     def __str__(self) -> str:
         val = f"{self.cls.value} {{{self.id}}} {self.name}"
@@ -182,6 +194,8 @@ class Item(Loggable, JSONDecoder):
             # TODO Load maintenance formula
             self.repair_formula = None
             self.build_linked_items()
+            self.source_formulas.sort()
+            self.formulas.sort()
         else:
             self.log_warning(
                 f"Load function not supplied to load {self.name} dependencies"

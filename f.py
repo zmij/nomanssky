@@ -3,6 +3,7 @@
 import asyncio
 import argparse
 import logging
+import json
 
 from enum import Enum
 
@@ -21,7 +22,7 @@ def parse_args():
     parser.add_argument(
         "items",
         type=str,
-        nargs="+",
+        nargs="*",
         help="No Man's Sky items to show",
     )
     parser.add_argument(
@@ -80,8 +81,12 @@ def parse_args():
         "-f",
         "--formula",
         type=str,
-        default=None,
+        nargs="*",
+        default=[],
         help="Formula's repr (option for debugging)",
+    )
+    parser.add_argument(
+        "--dump", action="store_true", help="Dump top results into json"
     )
 
     return parser.parse_args()
@@ -91,16 +96,22 @@ async def main():
     args = parse_args()
     logging.getLogger().setLevel(LOG_LEVELS[args.log_level])
     async with nomanssky.Wiki() as wiki:
-        items = await wiki.get_items(args.items)
+        item_ids = args.items
+        if args.formula:
+            formula_results = [
+                repr.split("=")[0] for repr in args.formula if "=" in repr
+            ]
+            item_ids = set(item_ids + formula_results)
+        items = await wiki.get_items(item_ids)
         source_formulas = [f for i in items if i is not None for f in i.source_formulas]
 
         if not source_formulas:
             print(f"No formulas to make {items}")
             exit(1)
         else:
-            if args.formula is not None:
+            if args.formula:
                 source_formulas = [
-                    f for f in source_formulas if f.__repr__() == args.formula
+                    f for f in source_formulas if f.__repr__() in args.formula
                 ]
                 if not source_formulas:
                     print(f"Formula {args.formula} not found")
@@ -108,6 +119,18 @@ async def main():
             elif args.formula_number > 0:
                 source_formulas = source_formulas[0 : args.formula_number]
                 print(source_formulas)
+            if args.dump:
+                print(
+                    "[\n    "
+                    + ",\n   ".join(
+                        [
+                            json.dumps(f, cls=nomanssky.JSONEncoder)
+                            for f in source_formulas
+                        ]
+                    )
+                    + "\n]"
+                )
+                exit(0)
             count_filter = nomanssky.component_count_filter(args.component_count)
             type_tilter = nomanssky.formula_type_filter(
                 nomanssky.FormulaTypeFilter(args.type)
