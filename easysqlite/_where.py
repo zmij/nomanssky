@@ -336,9 +336,12 @@ def build_expression(
     *args: tuple[Expression, ...], __op=And, __kwarg_op=Eq, **kwargs
 ) -> Expression:
     kwarg_expressions = tuple(__kwarg_op(_field=k, _value=v) for k, v in kwargs.items())
-    if not kwarg_expressions and len(args) == 1:
+    filtered_args = [arg for arg in args if isinstance(arg, Expression)]
+    if not kwarg_expressions and len(filtered_args) == 0:
+        return Expression()
+    if not kwarg_expressions and len(filtered_args) == 1:
         return args[0]
-    return __op(*args, *kwarg_expressions)
+    return __op(*filtered_args, *kwarg_expressions)
 
 
 if __name__ == "__main__":

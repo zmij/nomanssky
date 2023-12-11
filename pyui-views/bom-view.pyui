@@ -1,0 +1,127 @@
+[
+  {
+    "nodes" : [
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{0, 88}, {353, 323}}",
+        "class" : "TableView",
+        "attributes" : {
+          "flex" : "WH",
+          "data_source_items" : "Item A x100\nItem B x200\nbla bla bla",
+          "name" : "bom_view",
+          "frame" : "{{77, 105}, {200, 200}}",
+          "uuid" : "8C2B3F4F-2DFD-47AF-B60E-A0732A973BB5",
+          "background_color" : "RGBA(1.0, 1.0, 1.0, 1.0)",
+          "data_source_number_of_lines" : 1,
+          "class" : "TableView",
+          "data_source_delete_enabled" : true,
+          "row_height" : 44,
+          "data_source_font_size" : 18
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{314, 6}, {32, 32}}",
+        "class" : "Button",
+        "attributes" : {
+          "flex" : "L",
+          "font_size" : 15,
+          "frame" : "{{137, 189}, {80, 32}}",
+          "title" : "",
+          "uuid" : "F70484B9-3A48-4286-A084-721A4E7851E3",
+          "class" : "Button",
+          "name" : "settings_button",
+          "image_name" : "iob:ios7_cog_outline_24"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{6, 6}, {300, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "flex" : "W",
+          "name" : "total_cost",
+          "frame" : "{{102, 189}, {150, 32}}",
+          "uuid" : "7D3B1E33-D88E-41AD-942D-70DF7E94E781",
+          "class" : "Label",
+          "alignment" : "left",
+          "text" : "Total cost",
+          "font_size" : 18,
+          "font_name" : "<System>"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{233, 39}, {120, 34}}",
+        "class" : "SegmentedControl",
+        "attributes" : {
+          "name" : "prefer_mode_switch",
+          "frame" : "{{117, 190}, {120, 29}}",
+          "uuid" : "D8346056-663B-4C64-B6E5-A24FE111093D",
+          "class" : "SegmentedControl",
+          "segments" : "Refine|Craft",
+          "flex" : "LB"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{0, 39}, {173, 34}}",
+        "class" : "Slider",
+        "attributes" : {
+          "flex" : "W",
+          "continuous" : true,
+          "frame" : "{{77, 188}, {200, 34}}",
+          "uuid" : "5D0E7433-1300-4772-B0AC-D9C4876B32A6",
+          "class" : "Slider",
+          "value" : 0,
+          "name" : "multiplication_slider"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{174, 39}, {54, 34}}",
+        "class" : "Label",
+        "attributes" : {
+          "flex" : "LB",
+          "name" : "multiple_label",
+          "frame" : "{{102, 189}, {150, 32}}",
+          "uuid" : "160E3BDE-A7EE-4DD5-9BB9-57BBA6FE3EEB",
+          "class" : "Label",
+          "alignment" : "right",
+          "text" : "x100",
+          "font_size" : 18,
+          "font_name" : "<System>"
+        },
+        "selected" : false
+      }
+    ],
+    "frame" : "{{0, 0}, {353, 409}}",
+    "class" : "View",
+    "attributes" : {
+      "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "enabled" : true,
+      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
+      "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
+      "custom_class" : "view_class",
+      "flex" : ""
+    },
+    "selected" : false
+  }
+]

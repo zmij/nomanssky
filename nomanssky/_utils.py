@@ -51,6 +51,9 @@ class _DequeWrapper(Generic[T]):
         while len(self._elements):
             yield self.pop()
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: {len(self)}>"
+
     @property
     def empty(self) -> bool:
         return len(self._elements) == 0

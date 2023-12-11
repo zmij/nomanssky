@@ -13,6 +13,7 @@ class Symbols(Enum):
     THERMOMETER = "🌡️"
     ALEMBIC = "⚗️"
     SCREWDRIVER = "🪛"
+    UNITS = "Ʉ"
 
     def __str__(self) -> str:
         return self.value

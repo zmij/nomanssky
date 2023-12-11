@@ -30,6 +30,10 @@ class Wiki(Loggable):
         self._db = Database(db_name, self.setup_db)
         self._req_made = 0
 
+    @property
+    def item_cache(self) -> dict[str, Item]:
+        return self._items
+
     def setup_db(self, conn: sqlite3.Connection) -> None:
         self.log_debug("Setup database")
         for cls in Wiki.DB_CLASSES:

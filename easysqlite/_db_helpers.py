@@ -121,6 +121,11 @@ def _get_update_on_conflict_clause(cls, conflict_fields: List[str] = []) -> str:
     )
 
 
+def _get_fields_tuple(self, names: List[str]):
+    attr = get_stored_attrs(self.__class__, lambda s: s.field in names)
+    return {x.name: x.to_db(getattr(self, x.name)) for x in attr}
+
+
 def _get_select_fields(self):
     attr = get_stored_attrs(self.__class__)
     return tuple([x.to_db(getattr(self, x.field)) for x in attr])
@@ -245,6 +250,7 @@ class StoredField(Generic[T]):
         add_method(owner, _get_insert_fields)
         add_method(owner, _get_update_fields)
         add_method(owner, _get_stored_field_tuple)
+        add_method(owner, _get_fields_tuple)
         add_method(owner, _update_from_db)
 
     def __get__(self, obj: Any, objtype=None) -> T:
@@ -392,7 +398,7 @@ from {table_name}
                     f"{the_cls.__name__} doesn't have {missing} fields in database"
                 )
             where = build_expression(*args, **kwargs)
-            where_clause = " where " + where.expression
+            where_clause = where.expression and " where " + where.expression or ""
             cursor = conn.execute(select_query + where_clause, where.params)
         else:
             cursor = conn.execute(select_query)
@@ -411,7 +417,7 @@ def _make_store_fn(
     id_fields: List[str],
     log_run: Callable[[str, Tuple[Any]], None],
     log_create: Callable[[str, Tuple[Any]], None],
-) -> None:
+) -> Callable[[Any, sqlite3.Connection], None]:
     store_query = f"""
 insert into {table_name}({insert_field_names(cls)})
 values ({insert_placeholders(cls)})
@@ -433,11 +439,29 @@ set {update_on_conflict_clause(cls, id_fields)}
     return _store_fn
 
 
+def _make_remove_fn(
+    cls: type,
+    table_name: str,
+    id_fields: List[str],
+    log_run: Callable[[str, Tuple[Any]], None],
+    log_create: Callable[[str, Tuple[Any]], None],
+) -> Callable[[Any, sqlite3.Connection], None]:
+    where_clause = " and ".join([f"{f} = ?" for f in id_fields])
+    delete_query = f"delete from {table_name} where {where_clause}"
+
+    def _delete_fn(self, conn: sqlite3.Connection) -> None:
+        log_run(f"Remove {self} from db")
+        conn.execute(delete_query, self._get_fields_tuple(id_fields))
+
+    return _delete_fn
+
+
 def _build_db_class(
     cls: type,
     table_name: str,
     id_fields: List[str],
     store_fn_name: str,
+    remove_fn_name: str,
     load_fn_name: str,
     log_level: int,
     verbose: bool,
@@ -464,6 +488,10 @@ def _build_db_class(
     store_fn = _make_store_fn(cls, table_name, id_fields, log_run, log_create)
     add_method(cls, store_fn, store_fn_name)
 
+    if remove_fn_name is not None and id_fields:
+        remove_fn = _make_remove_fn(cls, table_name, id_fields, log_run, log_create)
+        add_method(cls, remove_fn, remove_fn_name)
+
     return cls
 
 
@@ -473,6 +501,7 @@ def stored_class(
     table_name: str,
     id_fields: List[str],
     store_fn_name="_store_to_db",
+    remove_fn_name: str = "_remove_from_db",
     load_fn_name: str = "_load_from_db",
     log_level: int = logging.INFO,
     verbose: bool = False,
@@ -483,6 +512,7 @@ def stored_class(
             table_name=table_name,
             id_fields=id_fields,
             store_fn_name=store_fn_name,
+            remove_fn_name=remove_fn_name,
             load_fn_name=load_fn_name,
             log_level=log_level,
             verbose=verbose,

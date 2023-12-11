@@ -5,7 +5,7 @@
         "nodes" : [
 
         ],
-        "frame" : "{{6, 70}, {308, 404}}",
+        "frame" : "{{6, 70}, {528, 464}}",
         "class" : "WebView",
         "attributes" : {
           "uuid" : "7A2BF2DA-E87E-44CC-B5D6-49C03E3F1E05",
@@ -21,7 +21,7 @@
         "nodes" : [
 
         ],
-        "frame" : "{{6, 70}, {308, 404}}",
+        "frame" : "{{6, 70}, {528, 464}}",
         "class" : "TableView",
         "attributes" : {
           "flex" : "WH",
@@ -29,12 +29,12 @@
           "name" : "formulas_view",
           "frame" : "{{60, 140}, {200, 200}}",
           "uuid" : "F304C9D9-AB33-4AFA-A116-B5B6694E0878",
+          "background_color" : "RGBA(1.0, 1.0, 1.0, 1.0)",
           "data_source_number_of_lines" : 1,
           "class" : "TableView",
-          "data_source_font_size" : 18,
-          "background_color" : "RGBA(1.0, 1.0, 1.0, 1.0)",
+          "data_source_delete_enabled" : false,
           "row_height" : 44,
-          "data_source_delete_enabled" : false
+          "data_source_font_size" : 18
         },
         "selected" : false
       },
@@ -42,17 +42,17 @@
         "nodes" : [
 
         ],
-        "frame" : "{{0, 0}, {320, 32}}",
+        "frame" : "{{0, 0}, {540, 32}}",
         "class" : "Label",
         "attributes" : {
           "flex" : "W",
-          "name" : "item_name",
+          "font_size" : 18,
           "frame" : "{{88, 173}, {150, 32}}",
           "uuid" : "A55DAF63-28AD-4C7C-B345-85C528C20F4C",
           "class" : "Label",
           "alignment" : "center",
           "text" : "Nothing Selected",
-          "font_size" : 18,
+          "name" : "item_name",
           "font_name" : "<System>"
         },
         "selected" : false
@@ -61,7 +61,7 @@
         "nodes" : [
 
         ],
-        "frame" : "{{0, 0}, {60, 60}}",
+        "frame" : "{{0, 0}, {63, 63}}",
         "class" : "ImageView",
         "attributes" : {
           "flex" : "RB",
@@ -76,10 +76,10 @@
         "nodes" : [
 
         ],
-        "frame" : "{{98, 31}, {222, 31}}",
+        "frame" : "{{318, 31}, {222, 31}}",
         "class" : "SegmentedControl",
         "attributes" : {
-          "segments" : "source|bom|target|wiki",
+          "segments" : "source|target|bom|wiki",
           "frame" : "{{100, 226}, {120, 29}}",
           "uuid" : "7E9DC98B-4F70-426B-ACE5-E860029B74B4",
           "name" : "state_control",
@@ -92,30 +92,62 @@
         "nodes" : [
 
         ],
-        "frame" : "{{6, 225}, {308, 32}}",
+        "frame" : "{{6, 255}, {528, 32}}",
         "class" : "Label",
         "attributes" : {
-          "font_size" : 18,
           "flex" : "WTB",
+          "name" : "no_way",
           "frame" : "{{85, 224}, {150, 32}}",
           "uuid" : "01AE9440-583F-48B3-81EB-1CF6E95FC3AD",
           "class" : "Label",
           "alignment" : "center",
           "text" : "Nothing to show here, sorry",
-          "name" : "no_way",
+          "font_size" : 18,
           "font_name" : "<System>"
         },
-        "selected" : true
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{68, 31}, {115, 32}}",
+        "class" : "Label",
+        "attributes" : {
+          "font_size" : 18,
+          "frame" : "{{195, 254}, {150, 32}}",
+          "uuid" : "ED6CD8C0-97B4-4033-9656-D5B1975C299C",
+          "class" : "Label",
+          "alignment" : "right",
+          "text" : "100000000",
+          "name" : "value_label",
+          "font_name" : "<System>"
+        },
+        "selected" : false
+      },
+      {
+        "nodes" : [
+
+        ],
+        "frame" : "{{185, 31}, {32, 32}}",
+        "class" : "ImageView",
+        "attributes" : {
+          "frame" : "{{220, 220}, {100, 100}}",
+          "class" : "ImageView",
+          "name" : "currency_image",
+          "uuid" : "42AA4319-0501-4A9A-BFB1-742619E0D9D0"
+        },
+        "selected" : false
       }
     ],
-    "frame" : "{{0, 0}, {320, 480}}",
+    "frame" : "{{0, 0}, {540, 540}}",
     "class" : "View",
     "attributes" : {
-      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
-      "enabled" : true,
       "tint_color" : "RGBA(0.000000,0.478000,1.000000,1.000000)",
-      "custom_class" : "ItemView",
+      "enabled" : true,
       "border_color" : "RGBA(0.000000,0.000000,0.000000,1.000000)",
+      "custom_class" : "view_class",
+      "background_color" : "RGBA(1.000000,1.000000,1.000000,1.000000)",
       "flex" : ""
     },
     "selected" : false

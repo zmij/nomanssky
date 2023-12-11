@@ -156,9 +156,7 @@ class PageParser(Loggable):
             if m:
                 formula.type = FormulaType.REFINING
                 formula.process = m.group(1)
-                formula.time = m.group(2)
-
-        formula.ingredients.sort(key=lambda x: x.name)
+                formula.time = float(m.group(2))
 
         if (
             formula.result is not None or formula.type == FormulaType.REPAIR

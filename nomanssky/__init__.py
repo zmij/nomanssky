@@ -17,4 +17,4 @@ from ._formula_printer import (
 )
 from ._item_graph import *
 from ._coords import GalacticCoords, CoordinateSpace, Glyphs
-from ._bom import BOM
+from ._bom import BOM, build_bom
